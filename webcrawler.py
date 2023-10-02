@@ -1,0 +1,53 @@
+import requests
+from bs4 import BeautifulSoup
+
+# Task 1: Extract United Nations press releases
+BASE_URL = "https://press.un.org"
+SEED_URL = BASE_URL + "/en"
+press_releases = []
+
+def get_links_from_page(url):
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, 'html.parser')
+    press_release_links = [a['href'] for a in soup.find_all('a', hreflang='en', text='Press Release')]
+    return press_release_links
+
+def search_for_crisis(links):
+    for link in links:
+        full_url = BASE_URL + link
+        response = requests.get(full_url)
+        soup = BeautifulSoup(response.content, 'html.parser')
+        if 'crisis' in soup.get_text().lower():
+            press_releases.append(full_url)
+            if len(press_releases) >= 10:
+                break
+
+search_for_crisis(get_links_from_page(SEED_URL))
+print("UN Press Releases:")
+print(press_releases)
+
+
+# Task 2: Crawl the press room of the European Parliament
+EU_BASE_URL = "https://www.europarl.europa.eu"
+EU_SEED_URL = EU_BASE_URL + "/news/en/press-room"
+eu_press_releases = []
+
+def get_eu_links_from_page(url):
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, 'html.parser')
+    plenary_links = [a['href'] for a in soup.find_all('a', href=True) if soup.find('span', class_='ep_name', text='Plenary session')]
+    return plenary_links
+
+def search_eu_for_crisis(links):
+    for link in links:
+        full_url = EU_BASE_URL + link
+        response = requests.get(full_url)
+        soup = BeautifulSoup(response.content, 'html.parser')
+        if 'crisis' in soup.get_text().lower():
+            eu_press_releases.append(full_url)
+            if len(eu_press_releases) >= 10:
+                break
+
+search_eu_for_crisis(get_eu_links_from_page(EU_SEED_URL))
+print("\nEuropean Parliament Press Releases:")
+print(eu_press_releases)
